@@ -1,0 +1,1451 @@
+import React, { useState, useEffect, useCallback } from 'react';
+
+// База глаголов с примерами предложений
+const verbsDatabase = [
+  {
+    id: 1, present: "είμαι", aorist: "ήμουν", future: "θα είμαι", translation: "быть", category: "basic",
+    examples: {
+      present: [
+        { gr: "Είμαι από τη Ρωσία.", ru: "Я из России." },
+        { gr: "Είσαι καλά;", ru: "Ты в порядке?" },
+        { gr: "Δεν είμαστε κουρασμένοι.", ru: "Мы не устали." }
+      ],
+      aorist: [
+        { gr: "Χτες ήμουν στο σπίτι.", ru: "Вчера я был дома." },
+        { gr: "Πού ήσουν το πρωί;", ru: "Где ты был утром?" }
+      ],
+      future: [
+        { gr: "Αύριο θα είμαι εδώ.", ru: "Завтра я буду здесь." },
+        { gr: "Όλα θα είναι καλά.", ru: "Всё будет хорошо." }
+      ]
+    }
+  },
+  {
+    id: 2, present: "έχω", aorist: "είχα", future: "θα έχω", translation: "иметь", category: "basic",
+    examples: {
+      present: [
+        { gr: "Έχω δύο αδέρφια.", ru: "У меня два брата/сестры." },
+        { gr: "Έχεις χρόνο;", ru: "У тебя есть время?" },
+        { gr: "Δεν έχουμε γάλα.", ru: "У нас нет молока." }
+      ],
+      aorist: [
+        { gr: "Είχα πολλή δουλειά χτες.", ru: "Вчера у меня было много работы." },
+        { gr: "Δεν είχαμε πρόβλημα.", ru: "У нас не было проблем." }
+      ],
+      future: [
+        { gr: "Θα έχω διακοπές τον Αύγουστο.", ru: "У меня будет отпуск в августе." },
+        { gr: "Δεν θα έχεις πρόβλημα.", ru: "У тебя не будет проблем." }
+      ]
+    }
+  },
+  {
+    id: 3, present: "κάνω", aorist: "έκανα", future: "θα κάνω", translation: "делать", category: "basic",
+    examples: {
+      present: [
+        { gr: "Τι κάνεις;", ru: "Как дела? / Что делаешь?" },
+        { gr: "Κάνει κρύο σήμερα.", ru: "Сегодня холодно." },
+        { gr: "Μην κάνεις θόρυβο!", ru: "Не шуми!" }
+      ],
+      aorist: [
+        { gr: "Τι έκανες χτες;", ru: "Что ты делал вчера?" },
+        { gr: "Έκανα λάθος.", ru: "Я ошибся." }
+      ],
+      future: [
+        { gr: "Τι θα κάνεις το Σαββατοκύριακο;", ru: "Что будешь делать на выходных?" },
+        { gr: "Θα κάνει ζέστη αύριο.", ru: "Завтра будет жарко." }
+      ]
+    }
+  },
+  {
+    id: 4, present: "πάω", aorist: "πήγα", future: "θα πάω", translation: "идти, ехать", category: "movement",
+    examples: {
+      present: [
+        { gr: "Πού πας;", ru: "Куда ты идёшь?" },
+        { gr: "Πάω στη δουλειά με το μετρό.", ru: "Еду на работу на метро." },
+        { gr: "Πάμε για καφέ!", ru: "Пойдём на кофе!" }
+      ],
+      aorist: [
+        { gr: "Πήγα στο σινεμά χτες.", ru: "Вчера ходил в кино." },
+        { gr: "Δεν πήγαμε στο πάρτι.", ru: "Мы не пошли на вечеринку." }
+      ],
+      future: [
+        { gr: "Θα πάω στην Ελλάδα.", ru: "Я поеду в Грецию." },
+        { gr: "Θα πας μαζί μου;", ru: "Пойдёшь со мной?" }
+      ]
+    }
+  },
+  {
+    id: 5, present: "έρχομαι", aorist: "ήρθα", future: "θα έρθω", translation: "приходить", category: "movement",
+    examples: {
+      present: [
+        { gr: "Έρχομαι αμέσως!", ru: "Иду сейчас!" },
+        { gr: "Έρχεσαι στο πάρτι;", ru: "Придёшь на вечеринку?" },
+        { gr: "Έλα εδώ!", ru: "Иди сюда!" }
+      ],
+      aorist: [
+        { gr: "Ήρθα από την Αθήνα.", ru: "Я приехал из Афин." },
+        { gr: "Πότε ήρθες;", ru: "Когда ты пришёл?" }
+      ],
+      future: [
+        { gr: "Θα έρθω στις οκτώ.", ru: "Приду в восемь." },
+        { gr: "Δεν θα έρθει σήμερα.", ru: "Он не придёт сегодня." }
+      ]
+    }
+  },
+  {
+    id: 6, present: "λέω", aorist: "είπα", future: "θα πω", translation: "говорить, сказать", category: "communication",
+    examples: {
+      present: [
+        { gr: "Τι λες;", ru: "Что ты говоришь?" },
+        { gr: "Πες μου!", ru: "Скажи мне!" },
+        { gr: "Μην το λες σε κανέναν.", ru: "Никому не говори." }
+      ],
+      aorist: [
+        { gr: "Τι είπες;", ru: "Что ты сказал?" },
+        { gr: "Δεν είπε τίποτα.", ru: "Он ничего не сказал." }
+      ],
+      future: [
+        { gr: "Θα σου πω αργότερα.", ru: "Скажу тебе позже." },
+        { gr: "Δεν θα πω τίποτα.", ru: "Я ничего не скажу." }
+      ]
+    }
+  },
+  {
+    id: 7, present: "βλέπω", aorist: "είδα", future: "θα δω", translation: "видеть, смотреть", category: "perception",
+    examples: {
+      present: [
+        { gr: "Βλέπω τηλεόραση.", ru: "Смотрю телевизор." },
+        { gr: "Βλέπεις εκείνο το σπίτι;", ru: "Видишь тот дом?" },
+        { gr: "Κοίτα!", ru: "Смотри!" }
+      ],
+      aorist: [
+        { gr: "Είδα μια ωραία ταινία.", ru: "Посмотрел хороший фильм." },
+        { gr: "Τον είδες χτες;", ru: "Ты его видел вчера?" }
+      ],
+      future: [
+        { gr: "Θα δούμε!", ru: "Посмотрим!" },
+        { gr: "Θα σε δω αύριο.", ru: "Увидимся завтра." }
+      ]
+    }
+  },
+  {
+    id: 8, present: "ακούω", aorist: "άκουσα", future: "θα ακούσω", translation: "слышать, слушать", category: "perception",
+    examples: {
+      present: [
+        { gr: "Ακούω μουσική.", ru: "Слушаю музыку." },
+        { gr: "Δεν ακούω τίποτα.", ru: "Ничего не слышу." },
+        { gr: "Άκου με!", ru: "Слушай меня!" }
+      ],
+      aorist: [
+        { gr: "Άκουσα ένα περίεργο θόρυβο.", ru: "Услышал странный звук." },
+        { gr: "Άκουσες τα νέα;", ru: "Слышал новости?" }
+      ],
+      future: [
+        { gr: "Θα ακούσω το τραγούδι.", ru: "Послушаю песню." },
+        { gr: "Θα με ακούσεις;", ru: "Ты меня послушаешь?" }
+      ]
+    }
+  },
+  {
+    id: 9, present: "θέλω", aorist: "ήθελα", future: "θα θέλω", translation: "хотеть", category: "basic",
+    examples: {
+      present: [
+        { gr: "Θέλω νερό.", ru: "Хочу воды." },
+        { gr: "Θέλεις καφέ;", ru: "Хочешь кофе?" },
+        { gr: "Δεν θέλω να πάω.", ru: "Не хочу идти." }
+      ],
+      aorist: [
+        { gr: "Ήθελα να σε δω.", ru: "Хотел тебя увидеть." },
+        { gr: "Δεν ήθελε να έρθει.", ru: "Он не хотел приходить." }
+      ],
+      future: [
+        { gr: "Θα θέλω βοήθεια.", ru: "Мне понадобится помощь." },
+        { gr: "Θα θέλεις να φας;", ru: "Захочешь поесть?" }
+      ]
+    }
+  },
+  {
+    id: 10, present: "μπορώ", aorist: "μπόρεσα", future: "θα μπορέσω", translation: "мочь", category: "basic",
+    examples: {
+      present: [
+        { gr: "Μπορώ να σε βοηθήσω;", ru: "Могу тебе помочь?" },
+        { gr: "Δεν μπορώ να έρθω.", ru: "Не могу прийти." },
+        { gr: "Μπορείς να μιλήσεις πιο αργά;", ru: "Можешь говорить медленнее?" }
+      ],
+      aorist: [
+        { gr: "Δεν μπόρεσα να τον βρω.", ru: "Не смог его найти." },
+        { gr: "Μπόρεσαν να φύγουν.", ru: "Они смогли уйти." }
+      ],
+      future: [
+        { gr: "Θα μπορέσω να έρθω αύριο.", ru: "Смогу прийти завтра." },
+        { gr: "Δεν θα μπορέσουμε.", ru: "Мы не сможем." }
+      ]
+    }
+  },
+  {
+    id: 11, present: "τρώω", aorist: "έφαγα", future: "θα φάω", translation: "есть", category: "food",
+    examples: {
+      present: [
+        { gr: "Τρώω πρωινό.", ru: "Завтракаю." },
+        { gr: "Τι τρως;", ru: "Что ты ешь?" },
+        { gr: "Φάε το φαγητό σου!", ru: "Ешь свою еду!" }
+      ],
+      aorist: [
+        { gr: "Έφαγα πολύ.", ru: "Я съел много." },
+        { gr: "Δεν έφαγα τίποτα.", ru: "Ничего не ел." }
+      ],
+      future: [
+        { gr: "Θα φάω αργότερα.", ru: "Поем позже." },
+        { gr: "Τι θα φάμε απόψε;", ru: "Что будем есть вечером?" }
+      ]
+    }
+  },
+  {
+    id: 12, present: "πίνω", aorist: "ήπια", future: "θα πιω", translation: "пить", category: "food",
+    examples: {
+      present: [
+        { gr: "Πίνω καφέ κάθε πρωί.", ru: "Пью кофе каждое утро." },
+        { gr: "Τι πίνεις;", ru: "Что пьёшь?" },
+        { gr: "Πιες λίγο νερό!", ru: "Выпей воды!" }
+      ],
+      aorist: [
+        { gr: "Ήπια δύο καφέδες.", ru: "Выпил два кофе." },
+        { gr: "Δεν ήπιε τίποτα.", ru: "Он ничего не выпил." }
+      ],
+      future: [
+        { gr: "Θα πιω ένα ποτήρι κρασί.", ru: "Выпью бокал вина." },
+        { gr: "Τι θα πιεις;", ru: "Что будешь пить?" }
+      ]
+    }
+  },
+  {
+    id: 13, present: "μιλάω", aorist: "μίλησα", future: "θα μιλήσω", translation: "говорить", category: "communication",
+    examples: {
+      present: [
+        { gr: "Μιλάω ελληνικά.", ru: "Говорю по-гречески." },
+        { gr: "Με ποιον μιλάς;", ru: "С кем разговариваешь?" },
+        { gr: "Μην μιλάς δυνατά!", ru: "Не говори громко!" }
+      ],
+      aorist: [
+        { gr: "Μίλησα με τον γιατρό.", ru: "Поговорил с врачом." },
+        { gr: "Δεν μίλησαν καθόλου.", ru: "Они совсем не разговаривали." }
+      ],
+      future: [
+        { gr: "Θα μιλήσω με το αφεντικό.", ru: "Поговорю с начальником." },
+        { gr: "Θα μιλήσουμε αργότερα.", ru: "Поговорим позже." }
+      ]
+    }
+  },
+  {
+    id: 14, present: "γράφω", aorist: "έγραψα", future: "θα γράψω", translation: "писать", category: "communication",
+    examples: {
+      present: [
+        { gr: "Γράφω ένα γράμμα.", ru: "Пишу письмо." },
+        { gr: "Τι γράφεις;", ru: "Что пишешь?" },
+        { gr: "Γράψε το όνομά σου!", ru: "Напиши своё имя!" }
+      ],
+      aorist: [
+        { gr: "Έγραψα ένα email.", ru: "Написал имейл." },
+        { gr: "Έγραψες την άσκηση;", ru: "Написал упражнение?" }
+      ],
+      future: [
+        { gr: "Θα γράψω αύριο.", ru: "Напишу завтра." },
+        { gr: "Θα μου γράψεις;", ru: "Напишешь мне?" }
+      ]
+    }
+  },
+  {
+    id: 15, present: "διαβάζω", aorist: "διάβασα", future: "θα διαβάσω", translation: "читать", category: "communication",
+    examples: {
+      present: [
+        { gr: "Διαβάζω ένα βιβλίο.", ru: "Читаю книгу." },
+        { gr: "Διάβασε αυτό!", ru: "Прочитай это!" }
+      ],
+      aorist: [
+        { gr: "Διάβασα ένα ωραίο βιβλίο.", ru: "Прочитал хорошую книгу." },
+        { gr: "Διάβασες το μήνυμα;", ru: "Прочитал сообщение?" }
+      ],
+      future: [
+        { gr: "Θα διαβάσω απόψε.", ru: "Почитаю вечером." },
+        { gr: "Θα το διαβάσεις;", ru: "Ты это прочитаешь?" }
+      ]
+    }
+  },
+  {
+    id: 16, present: "δουλεύω", aorist: "δούλεψα", future: "θα δουλέψω", translation: "работать", category: "work",
+    examples: {
+      present: [
+        { gr: "Δουλεύω σε τράπεζα.", ru: "Работаю в банке." },
+        { gr: "Πού δουλεύεις;", ru: "Где работаешь?" },
+        { gr: "Δεν δουλεύω σήμερα.", ru: "Сегодня не работаю." }
+      ],
+      aorist: [
+        { gr: "Δούλεψα όλη μέρα.", ru: "Работал весь день." },
+        { gr: "Δεν δούλεψε καθόλου.", ru: "Он совсем не работал." }
+      ],
+      future: [
+        { gr: "Θα δουλέψω αύριο.", ru: "Буду работать завтра." },
+        { gr: "Θα δουλέψεις το Σάββατο;", ru: "Будешь работать в субботу?" }
+      ]
+    }
+  },
+  {
+    id: 17, present: "μαθαίνω", aorist: "έμαθα", future: "θα μάθω", translation: "учить, узнавать", category: "work",
+    examples: {
+      present: [
+        { gr: "Μαθαίνω ελληνικά.", ru: "Учу греческий." },
+        { gr: "Μάθε αυτές τις λέξεις!", ru: "Выучи эти слова!" }
+      ],
+      aorist: [
+        { gr: "Έμαθα τα νέα.", ru: "Узнал новости." },
+        { gr: "Πού το έμαθες;", ru: "Где ты это узнал?" }
+      ],
+      future: [
+        { gr: "Θα μάθω να οδηγώ.", ru: "Научусь водить." },
+        { gr: "Θα μάθεις γρήγορα.", ru: "Быстро научишься." }
+      ]
+    }
+  },
+  {
+    id: 18, present: "αγαπάω", aorist: "αγάπησα", future: "θα αγαπήσω", translation: "любить", category: "emotion",
+    examples: {
+      present: [
+        { gr: "Σε αγαπάω.", ru: "Я тебя люблю." },
+        { gr: "Αγαπάει τα ζώα.", ru: "Он любит животных." }
+      ],
+      aorist: [
+        { gr: "Τον αγάπησα αμέσως.", ru: "Полюбила его сразу." },
+        { gr: "Αγάπησαν την Ελλάδα.", ru: "Они полюбили Грецию." }
+      ],
+      future: [
+        { gr: "Θα σε αγαπάω πάντα.", ru: "Буду любить тебя всегда." },
+        { gr: "Θα το αγαπήσεις.", ru: "Тебе понравится." }
+      ]
+    }
+  },
+  {
+    id: 19, present: "κοιμάμαι", aorist: "κοιμήθηκα", future: "θα κοιμηθώ", translation: "спать", category: "daily",
+    examples: {
+      present: [
+        { gr: "Κοιμάμαι οκτώ ώρες.", ru: "Сплю восемь часов." },
+        { gr: "Το μωρό κοιμάται.", ru: "Ребёнок спит." },
+        { gr: "Μην κοιμάσαι!", ru: "Не спи!" }
+      ],
+      aorist: [
+        { gr: "Κοιμήθηκα καλά.", ru: "Хорошо выспался." },
+        { gr: "Δεν κοιμήθηκε καθόλου.", ru: "Совсем не спал." }
+      ],
+      future: [
+        { gr: "Θα κοιμηθώ νωρίς.", ru: "Лягу спать рано." },
+        { gr: "Θα κοιμηθείς εδώ;", ru: "Будешь спать здесь?" }
+      ]
+    }
+  },
+  {
+    id: 20, present: "ξυπνάω", aorist: "ξύπνησα", future: "θα ξυπνήσω", translation: "просыпаться", category: "daily",
+    examples: {
+      present: [
+        { gr: "Ξυπνάω στις επτά.", ru: "Просыпаюсь в семь." },
+        { gr: "Μην τον ξυπνάς!", ru: "Не буди его!" },
+        { gr: "Ξύπνα!", ru: "Просыпайся!" }
+      ],
+      aorist: [
+        { gr: "Ξύπνησα αργά.", ru: "Проснулся поздно." },
+        { gr: "Με ξύπνησε ο θόρυβος.", ru: "Меня разбудил шум." }
+      ],
+      future: [
+        { gr: "Θα ξυπνήσω νωρίς.", ru: "Проснусь рано." },
+        { gr: "Θα με ξυπνήσεις;", ru: "Разбудишь меня?" }
+      ]
+    }
+  },
+  {
+    id: 21, present: "αγοράζω", aorist: "αγόρασα", future: "θα αγοράσω", translation: "покупать", category: "shopping",
+    examples: {
+      present: [
+        { gr: "Αγοράζω ψωμί.", ru: "Покупаю хлеб." },
+        { gr: "Τι αγοράζεις;", ru: "Что покупаешь?" },
+        { gr: "Αγόρασε γάλα!", ru: "Купи молока!" }
+      ],
+      aorist: [
+        { gr: "Αγόρασα καινούργιο τηλέφωνο.", ru: "Купил новый телефон." },
+        { gr: "Τι αγόρασες;", ru: "Что ты купил?" }
+      ],
+      future: [
+        { gr: "Θα αγοράσω ένα δώρο.", ru: "Куплю подарок." },
+        { gr: "Θα αγοράσουμε εισιτήρια.", ru: "Купим билеты." }
+      ]
+    }
+  },
+  {
+    id: 22, present: "πληρώνω", aorist: "πλήρωσα", future: "θα πληρώσω", translation: "платить", category: "shopping",
+    examples: {
+      present: [
+        { gr: "Πληρώνω με κάρτα.", ru: "Плачу картой." },
+        { gr: "Ποιος πληρώνει;", ru: "Кто платит?" },
+        { gr: "Πλήρωσε στο ταμείο!", ru: "Заплати на кассе!" }
+      ],
+      aorist: [
+        { gr: "Πλήρωσα τον λογαριασμό.", ru: "Оплатил счёт." },
+        { gr: "Πλήρωσες το ενοίκιο;", ru: "Заплатил за аренду?" }
+      ],
+      future: [
+        { gr: "Θα πληρώσω εγώ.", ru: "Я заплачу." },
+        { gr: "Θα πληρώσουμε μαζί.", ru: "Заплатим вместе." }
+      ]
+    }
+  },
+  {
+    id: 23, present: "περπατάω", aorist: "περπάτησα", future: "θα περπατήσω", translation: "ходить пешком", category: "movement",
+    examples: {
+      present: [
+        { gr: "Περπατάω κάθε μέρα.", ru: "Гуляю каждый день." },
+        { gr: "Περπατάμε στο πάρκο.", ru: "Гуляем в парке." },
+        { gr: "Περπάτα πιο αργά!", ru: "Иди медленнее!" }
+      ],
+      aorist: [
+        { gr: "Περπάτησα δύο ώρες.", ru: "Гулял два часа." },
+        { gr: "Περπατήσατε πολύ;", ru: "Вы много ходили?" }
+      ],
+      future: [
+        { gr: "Θα περπατήσω μέχρι εκεί.", ru: "Дойду туда пешком." },
+        { gr: "Θα περπατήσουμε λίγο.", ru: "Немного погуляем." }
+      ]
+    }
+  },
+  {
+    id: 24, present: "τρέχω", aorist: "έτρεξα", future: "θα τρέξω", translation: "бежать", category: "movement",
+    examples: {
+      present: [
+        { gr: "Τρέχω κάθε πρωί.", ru: "Бегаю каждое утро." },
+        { gr: "Γιατί τρέχεις;", ru: "Почему бежишь?" },
+        { gr: "Μην τρέχεις!", ru: "Не беги!" }
+      ],
+      aorist: [
+        { gr: "Έτρεξα στο σταθμό.", ru: "Побежал на станцию." },
+        { gr: "Έτρεξαν μαζί.", ru: "Они бежали вместе." }
+      ],
+      future: [
+        { gr: "Θα τρέξω αύριο.", ru: "Побегаю завтра." },
+        { gr: "Θα τρέξουμε στο πάρκο.", ru: "Побегаем в парке." }
+      ]
+    }
+  },
+  {
+    id: 25, present: "φεύγω", aorist: "έφυγα", future: "θα φύγω", translation: "уходить", category: "movement",
+    examples: {
+      present: [
+        { gr: "Φεύγω τώρα.", ru: "Ухожу сейчас." },
+        { gr: "Πότε φεύγεις;", ru: "Когда уезжаешь?" },
+        { gr: "Μην φεύγεις!", ru: "Не уходи!" }
+      ],
+      aorist: [
+        { gr: "Έφυγα νωρίς.", ru: "Ушёл рано." },
+        { gr: "Έφυγαν χωρίς εμάς.", ru: "Ушли без нас." }
+      ],
+      future: [
+        { gr: "Θα φύγω αύριο.", ru: "Уеду завтра." },
+        { gr: "Θα φύγουμε το πρωί.", ru: "Уедем утром." }
+      ]
+    }
+  },
+  {
+    id: 26, present: "ρωτάω", aorist: "ρώτησα", future: "θα ρωτήσω", translation: "спрашивать", category: "communication",
+    examples: {
+      present: [
+        { gr: "Τι ρωτάς;", ru: "Что спрашиваешь?" },
+        { gr: "Ρώτα τον!", ru: "Спроси его!" }
+      ],
+      aorist: [
+        { gr: "Ρώτησα τον δάσκαλο.", ru: "Спросил учителя." },
+        { gr: "Τι ρώτησες;", ru: "Что спросил?" }
+      ],
+      future: [
+        { gr: "Θα ρωτήσω αύριο.", ru: "Спрошу завтра." },
+        { gr: "Θα τον ρωτήσεις;", ru: "Спросишь его?" }
+      ]
+    }
+  },
+  {
+    id: 27, present: "απαντάω", aorist: "απάντησα", future: "θα απαντήσω", translation: "отвечать", category: "communication",
+    examples: {
+      present: [
+        { gr: "Γιατί δεν απαντάς;", ru: "Почему не отвечаешь?" },
+        { gr: "Απάντα μου!", ru: "Ответь мне!" }
+      ],
+      aorist: [
+        { gr: "Απάντησα αμέσως.", ru: "Ответил сразу." },
+        { gr: "Δεν απάντησε.", ru: "Он не ответил." }
+      ],
+      future: [
+        { gr: "Θα απαντήσω αργότερα.", ru: "Отвечу позже." },
+        { gr: "Θα σου απαντήσω αύριο.", ru: "Отвечу тебе завтра." }
+      ]
+    }
+  },
+  {
+    id: 28, present: "καταλαβαίνω", aorist: "κατάλαβα", future: "θα καταλάβω", translation: "понимать", category: "mental",
+    examples: {
+      present: [
+        { gr: "Καταλαβαίνεις;", ru: "Понимаешь?" },
+        { gr: "Δεν καταλαβαίνω.", ru: "Не понимаю." }
+      ],
+      aorist: [
+        { gr: "Κατάλαβα!", ru: "Понял!" },
+        { gr: "Δεν κατάλαβα τίποτα.", ru: "Ничего не понял." }
+      ],
+      future: [
+        { gr: "Θα καταλάβεις αργότερα.", ru: "Поймёшь позже." },
+        { gr: "Δεν θα καταλάβει.", ru: "Он не поймёт." }
+      ]
+    }
+  },
+  {
+    id: 29, present: "σκέφτομαι", aorist: "σκέφτηκα", future: "θα σκεφτώ", translation: "думать", category: "mental",
+    examples: {
+      present: [
+        { gr: "Τι σκέφτεσαι;", ru: "О чём думаешь?" },
+        { gr: "Σκέφτομαι εσένα.", ru: "Думаю о тебе." },
+        { gr: "Μην το σκέφτεσαι!", ru: "Не думай об этом!" }
+      ],
+      aorist: [
+        { gr: "Σκέφτηκα μια ιδέα.", ru: "Придумал идею." },
+        { gr: "Δεν το σκέφτηκα.", ru: "Не подумал об этом." }
+      ],
+      future: [
+        { gr: "Θα το σκεφτώ.", ru: "Подумаю об этом." },
+        { gr: "Θα το σκεφτούμε.", ru: "Мы подумаем." }
+      ]
+    }
+  },
+  {
+    id: 30, present: "θυμάμαι", aorist: "θυμήθηκα", future: "θα θυμηθώ", translation: "помнить", category: "mental",
+    examples: {
+      present: [
+        { gr: "Θυμάσαι εμένα;", ru: "Помнишь меня?" },
+        { gr: "Δεν θυμάμαι.", ru: "Не помню." }
+      ],
+      aorist: [
+        { gr: "Θυμήθηκα κάτι!", ru: "Вспомнил кое-что!" },
+        { gr: "Δεν θυμήθηκε τίποτα.", ru: "Ничего не вспомнил." }
+      ],
+      future: [
+        { gr: "Θα θυμηθώ.", ru: "Вспомню." },
+        { gr: "Θα το θυμηθούμε.", ru: "Мы это вспомним." }
+      ]
+    }
+  },
+  {
+    id: 31, present: "ξεχνάω", aorist: "ξέχασα", future: "θα ξεχάσω", translation: "забывать", category: "mental",
+    examples: {
+      present: [
+        { gr: "Μην ξεχνάς!", ru: "Не забывай!" },
+        { gr: "Ξεχνάει πάντα.", ru: "Он всегда забывает." }
+      ],
+      aorist: [
+        { gr: "Ξέχασα το κλειδί.", ru: "Забыл ключ." },
+        { gr: "Ξέχασε να τηλεφωνήσει.", ru: "Забыл позвонить." }
+      ],
+      future: [
+        { gr: "Δεν θα σε ξεχάσω.", ru: "Не забуду тебя." },
+        { gr: "Μην το ξεχάσεις!", ru: "Не забудь!" }
+      ]
+    }
+  },
+  {
+    id: 32, present: "ανοίγω", aorist: "άνοιξα", future: "θα ανοίξω", translation: "открывать", category: "physical",
+    examples: {
+      present: [
+        { gr: "Ανοίγω την πόρτα.", ru: "Открываю дверь." },
+        { gr: "Άνοιξε το βιβλίο!", ru: "Открой книгу!" }
+      ],
+      aorist: [
+        { gr: "Άνοιξα το γράμμα.", ru: "Открыл письмо." },
+        { gr: "Άνοιξε τα μάτια του.", ru: "Он открыл глаза." }
+      ],
+      future: [
+        { gr: "Θα ανοίξω το παράθυρο.", ru: "Открою окно." },
+        { gr: "Θα ανοίξουμε μαγαζί.", ru: "Откроем магазин." }
+      ]
+    }
+  },
+  {
+    id: 33, present: "κλείνω", aorist: "έκλεισα", future: "θα κλείσω", translation: "закрывать", category: "physical",
+    examples: {
+      present: [
+        { gr: "Κλείνω την πόρτα.", ru: "Закрываю дверь." },
+        { gr: "Κλείσε το παράθυρο!", ru: "Закрой окно!" }
+      ],
+      aorist: [
+        { gr: "Έκλεισα τον υπολογιστή.", ru: "Выключил компьютер." },
+        { gr: "Έκλεισε τα μάτια.", ru: "Закрыл глаза." }
+      ],
+      future: [
+        { gr: "Θα κλείσω το τηλέφωνο.", ru: "Выключу телефон." },
+        { gr: "Θα κλείσουμε το μαγαζί.", ru: "Закроем магазин." }
+      ]
+    }
+  },
+  {
+    id: 34, present: "παίρνω", aorist: "πήρα", future: "θα πάρω", translation: "брать", category: "physical",
+    examples: {
+      present: [
+        { gr: "Τι παίρνεις;", ru: "Что берёшь?" },
+        { gr: "Πάρε αυτό!", ru: "Возьми это!" }
+      ],
+      aorist: [
+        { gr: "Πήρα το δώρο.", ru: "Получил подарок." },
+        { gr: "Πήρες τηλέφωνο;", ru: "Ты звонил?" }
+      ],
+      future: [
+        { gr: "Θα πάρω ένα ταξί.", ru: "Возьму такси." },
+        { gr: "Θα σε πάρω τηλέφωνο.", ru: "Позвоню тебе." }
+      ]
+    }
+  },
+  {
+    id: 35, present: "δίνω", aorist: "έδωσα", future: "θα δώσω", translation: "давать", category: "physical",
+    examples: {
+      present: [
+        { gr: "Σου δίνω το βιβλίο.", ru: "Даю тебе книгу." },
+        { gr: "Δώσε μου νερό!", ru: "Дай мне воды!" }
+      ],
+      aorist: [
+        { gr: "Έδωσα το δώρο.", ru: "Дал подарок." },
+        { gr: "Μου έδωσε τον αριθμό του.", ru: "Он дал мне свой номер." }
+      ],
+      future: [
+        { gr: "Θα σου δώσω τα χρήματα.", ru: "Дам тебе деньги." },
+        { gr: "Θα δώσουμε εξετάσεις.", ru: "Будем сдавать экзамены." }
+      ]
+    }
+  },
+  {
+    id: 36, present: "βάζω", aorist: "έβαλα", future: "θα βάλω", translation: "класть", category: "physical",
+    examples: {
+      present: [
+        { gr: "Πού το βάζεις;", ru: "Куда кладёшь?" },
+        { gr: "Βάλε το εδώ!", ru: "Положи сюда!" }
+      ],
+      aorist: [
+        { gr: "Έβαλα τα κλειδιά στο τραπέζι.", ru: "Положил ключи на стол." },
+        { gr: "Έβαλε τα γυαλιά του.", ru: "Надел очки." }
+      ],
+      future: [
+        { gr: "Θα βάλω τα πράγματα.", ru: "Положу вещи." },
+        { gr: "Θα βάλουμε πλυντήριο.", ru: "Включим стирку." }
+      ]
+    }
+  },
+  {
+    id: 37, present: "βρίσκω", aorist: "βρήκα", future: "θα βρω", translation: "находить", category: "physical",
+    examples: {
+      present: [
+        { gr: "Δεν βρίσκω το κλειδί.", ru: "Не нахожу ключ." },
+        { gr: "Βρες το!", ru: "Найди!" }
+      ],
+      aorist: [
+        { gr: "Βρήκα δουλειά!", ru: "Нашёл работу!" },
+        { gr: "Δεν βρήκαμε τίποτα.", ru: "Ничего не нашли." }
+      ],
+      future: [
+        { gr: "Θα βρω λύση.", ru: "Найду решение." },
+        { gr: "Θα βρούμε χρόνο.", ru: "Найдём время." }
+      ]
+    }
+  },
+  {
+    id: 38, present: "χάνω", aorist: "έχασα", future: "θα χάσω", translation: "терять", category: "physical",
+    examples: {
+      present: [
+        { gr: "Χάνω πάντα τα κλειδιά.", ru: "Всегда теряю ключи." },
+        { gr: "Μην χάνεις χρόνο!", ru: "Не теряй время!" }
+      ],
+      aorist: [
+        { gr: "Έχασα το πορτοφόλι μου.", ru: "Потерял кошелёк." },
+        { gr: "Έχασαν το παιχνίδι.", ru: "Проиграли игру." }
+      ],
+      future: [
+        { gr: "Μην το χάσεις!", ru: "Не потеряй!" },
+        { gr: "Θα χάσουμε το τρένο.", ru: "Опоздаем на поезд." }
+      ]
+    }
+  },
+  {
+    id: 39, present: "φοβάμαι", aorist: "φοβήθηκα", future: "θα φοβηθώ", translation: "бояться", category: "emotion",
+    examples: {
+      present: [
+        { gr: "Φοβάμαι τα σκυλιά.", ru: "Боюсь собак." },
+        { gr: "Μην φοβάσαι!", ru: "Не бойся!" }
+      ],
+      aorist: [
+        { gr: "Φοβήθηκα πολύ.", ru: "Очень испугался." },
+        { gr: "Φοβήθηκε τον θόρυβο.", ru: "Испугался шума." }
+      ],
+      future: [
+        { gr: "Μην φοβηθείς!", ru: "Не бойся!" },
+        { gr: "Δεν θα φοβηθούμε.", ru: "Мы не испугаемся." }
+      ]
+    }
+  },
+  {
+    id: 40, present: "χαίρομαι", aorist: "χάρηκα", future: "θα χαρώ", translation: "радоваться", category: "emotion",
+    examples: {
+      present: [
+        { gr: "Χαίρομαι πολύ!", ru: "Очень рад!" },
+        { gr: "Χαίρομαι που σε βλέπω.", ru: "Рад тебя видеть." }
+      ],
+      aorist: [
+        { gr: "Χάρηκα πολύ!", ru: "Очень приятно! (при знакомстве)" },
+        { gr: "Χάρηκα που ήρθες.", ru: "Рад, что пришёл." }
+      ],
+      future: [
+        { gr: "Θα χαρώ να σε δω.", ru: "Буду рад тебя увидеть." },
+        { gr: "Θα χαρούμε να βοηθήσουμε.", ru: "Будем рады помочь." }
+      ]
+    }
+  },
+  {
+    id: 41, present: "περιμένω", aorist: "περίμενα", future: "θα περιμένω", translation: "ждать", category: "social",
+    examples: {
+      present: [
+        { gr: "Περιμένω το λεωφορείο.", ru: "Жду автобус." },
+        { gr: "Περίμενε!", ru: "Подожди!" }
+      ],
+      aorist: [
+        { gr: "Περίμενα μια ώρα.", ru: "Ждал час." },
+        { gr: "Τον περίμεναν στο σπίτι.", ru: "Его ждали дома." }
+      ],
+      future: [
+        { gr: "Θα περιμένω εδώ.", ru: "Подожду здесь." },
+        { gr: "Θα με περιμένεις;", ru: "Подождёшь меня?" }
+      ]
+    }
+  },
+  {
+    id: 42, present: "βοηθάω", aorist: "βοήθησα", future: "θα βοηθήσω", translation: "помогать", category: "social",
+    examples: {
+      present: [
+        { gr: "Μπορείς να με βοηθήσεις;", ru: "Можешь помочь?" },
+        { gr: "Βοήθα με!", ru: "Помоги мне!" }
+      ],
+      aorist: [
+        { gr: "Με βοήθησε πολύ.", ru: "Он мне очень помог." },
+        { gr: "Δεν μας βοήθησε κανείς.", ru: "Нам никто не помог." }
+      ],
+      future: [
+        { gr: "Θα σε βοηθήσω.", ru: "Помогу тебе." },
+        { gr: "Θα μας βοηθήσεις;", ru: "Поможешь нам?" }
+      ]
+    }
+  },
+  {
+    id: 43, present: "αρχίζω", aorist: "άρχισα", future: "θα αρχίσω", translation: "начинать", category: "work",
+    examples: {
+      present: [
+        { gr: "Η ταινία αρχίζει.", ru: "Фильм начинается." },
+        { gr: "Άρχισε!", ru: "Начинай!" }
+      ],
+      aorist: [
+        { gr: "Άρχισα να μαθαίνω ελληνικά.", ru: "Начал учить греческий." },
+        { gr: "Άρχισε να βρέχει.", ru: "Начался дождь." }
+      ],
+      future: [
+        { gr: "Θα αρχίσω αύριο.", ru: "Начну завтра." },
+        { gr: "Πότε θα αρχίσεις;", ru: "Когда начнёшь?" }
+      ]
+    }
+  },
+  {
+    id: 44, present: "τελειώνω", aorist: "τελείωσα", future: "θα τελειώσω", translation: "заканчивать", category: "work",
+    examples: {
+      present: [
+        { gr: "Πότε τελειώνεις;", ru: "Когда заканчиваешь?" },
+        { gr: "Τελείωσε!", ru: "Заканчивай!" }
+      ],
+      aorist: [
+        { gr: "Τελείωσα το βιβλίο.", ru: "Закончил книгу." },
+        { gr: "Τελείωσε η ταινία.", ru: "Фильм закончился." }
+      ],
+      future: [
+        { gr: "Θα τελειώσω σύντομα.", ru: "Скоро закончу." },
+        { gr: "Θα τελειώσουμε αύριο.", ru: "Закончим завтра." }
+      ]
+    }
+  },
+  {
+    id: 45, present: "προσπαθώ", aorist: "προσπάθησα", future: "θα προσπαθήσω", translation: "стараться", category: "work",
+    examples: {
+      present: [
+        { gr: "Προσπαθώ να μάθω.", ru: "Стараюсь научиться." },
+        { gr: "Προσπάθα!", ru: "Старайся!" }
+      ],
+      aorist: [
+        { gr: "Προσπάθησα πολύ.", ru: "Очень старался." },
+        { gr: "Προσπάθησε να τον βρει.", ru: "Попытался его найти." }
+      ],
+      future: [
+        { gr: "Θα προσπαθήσω.", ru: "Постараюсь." },
+        { gr: "Θα προσπαθήσουμε ξανά.", ru: "Попробуем снова." }
+      ]
+    }
+  },
+  {
+    id: 46, present: "παίζω", aorist: "έπαιξα", future: "θα παίξω", translation: "играть", category: "entertainment",
+    examples: {
+      present: [
+        { gr: "Παίζω ποδόσφαιρο.", ru: "Играю в футбол." },
+        { gr: "Παίξε μαζί μου!", ru: "Играй со мной!" }
+      ],
+      aorist: [
+        { gr: "Έπαιξα τέννις.", ru: "Играл в теннис." },
+        { gr: "Έπαιξαν καλά.", ru: "Хорошо сыграли." }
+      ],
+      future: [
+        { gr: "Θα παίξω αύριο.", ru: "Поиграю завтра." },
+        { gr: "Θα παίξεις μαζί μας;", ru: "Поиграешь с нами?" }
+      ]
+    }
+  },
+  {
+    id: 47, present: "γελάω", aorist: "γέλασα", future: "θα γελάσω", translation: "смеяться", category: "emotion",
+    examples: {
+      present: [
+        { gr: "Γιατί γελάς;", ru: "Почему смеёшься?" },
+        { gr: "Μην γελάς!", ru: "Не смейся!" }
+      ],
+      aorist: [
+        { gr: "Γέλασα πολύ.", ru: "Много смеялся." },
+        { gr: "Γέλασαν με το αστείο.", ru: "Посмеялись над шуткой." }
+      ],
+      future: [
+        { gr: "Θα γελάσεις.", ru: "Будешь смеяться." },
+        { gr: "Θα γελάσουμε πολύ.", ru: "Будем много смеяться." }
+      ]
+    }
+  },
+  {
+    id: 48, present: "κλαίω", aorist: "έκλαψα", future: "θα κλάψω", translation: "плакать", category: "emotion",
+    examples: {
+      present: [
+        { gr: "Το μωρό κλαίει.", ru: "Ребёнок плачет." },
+        { gr: "Μην κλαις!", ru: "Не плачь!" }
+      ],
+      aorist: [
+        { gr: "Έκλαψα στην ταινία.", ru: "Плакал на фильме." },
+        { gr: "Έκλαψε πολύ.", ru: "Много плакал." }
+      ],
+      future: [
+        { gr: "Μην κλάψεις!", ru: "Не плачь!" },
+        { gr: "Δεν θα κλάψω.", ru: "Не буду плакать." }
+      ]
+    }
+  },
+  {
+    id: 49, present: "κολυμπάω", aorist: "κολύμπησα", future: "θα κολυμπήσω", translation: "плавать", category: "entertainment",
+    examples: {
+      present: [
+        { gr: "Κολυμπάω κάθε μέρα.", ru: "Плаваю каждый день." },
+        { gr: "Μην κολυμπάς μακριά!", ru: "Не плавай далеко!" }
+      ],
+      aorist: [
+        { gr: "Κολύμπησα δύο ώρες.", ru: "Плавал два часа." },
+        { gr: "Κολύμπησαν στη λίμνη.", ru: "Плавали в озере." }
+      ],
+      future: [
+        { gr: "Θα κολυμπήσω αύριο.", ru: "Поплаваю завтра." },
+        { gr: "Θα κολυμπήσουμε στη θάλασσα.", ru: "Поплаваем в море." }
+      ]
+    }
+  },
+  {
+    id: 50, present: "ταξιδεύω", aorist: "ταξίδεψα", future: "θα ταξιδέψω", translation: "путешествовать", category: "movement",
+    examples: {
+      present: [
+        { gr: "Ταξιδεύω πολύ.", ru: "Много путешествую." },
+        { gr: "Ταξιδεύεις συχνά;", ru: "Часто путешествуешь?" }
+      ],
+      aorist: [
+        { gr: "Ταξίδεψα στην Ιταλία.", ru: "Путешествовал в Италию." },
+        { gr: "Ταξίδεψαν μαζί.", ru: "Путешествовали вместе." }
+      ],
+      future: [
+        { gr: "Θα ταξιδέψω το καλοκαίρι.", ru: "Поеду путешествовать летом." },
+        { gr: "Θα ταξιδέψουμε στην Ελλάδα.", ru: "Поедем в Грецию." }
+      ]
+    }
+  }
+];
+
+const categories = {
+  all: "Все", basic: "Основные", movement: "Движение", communication: "Общение",
+  perception: "Восприятие", mental: "Мышление", food: "Еда", work: "Работа",
+  emotion: "Эмоции", physical: "Действия", daily: "Быт", social: "Общество",
+  shopping: "Покупки", entertainment: "Развлечения"
+};
+
+const SRS_INTERVALS = { 0: 0, 1: 4, 2: 24, 3: 72, 4: 168, 5: 336, 6: 720, 7: 2160 };
+const LEVEL_NAMES = { 0: "Новый", 1: "Начат", 2: "Учу", 3: "Знакомый", 4: "Помню", 5: "Знаю", 6: "Хорошо", 7: "Выучен" };
+const LEVEL_COLORS = {
+  0: "bg-gray-200 text-gray-700", 1: "bg-red-100 text-red-700", 2: "bg-orange-100 text-orange-700",
+  3: "bg-yellow-100 text-yellow-700", 4: "bg-lime-100 text-lime-700", 5: "bg-green-100 text-green-700",
+  6: "bg-emerald-100 text-emerald-700", 7: "bg-teal-100 text-teal-700"
+};
+
+export default function GreekVerbsTrainerV2() {
+  const [mode, setMode] = useState('menu');
+  const [progress, setProgress] = useState({});
+  const [customVerbs, setCustomVerbs] = useState([]);
+  const [currentCard, setCurrentCard] = useState(null);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
+  const [selectedCategories, setSelectedCategories] = useState(['all']);
+  const [questionType, setQuestionType] = useState('ru_to_gr');
+  const [formMode, setFormMode] = useState('all');
+  const [cardQueue, setCardQueue] = useState([]);
+  const [showSettings, setShowSettings] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentExample, setCurrentExample] = useState(null);
+  const [currentTense, setCurrentTense] = useState('present');
+  const [showExample, setShowExample] = useState(true);
+  const [newVerb, setNewVerb] = useState({ present: '', aorist: '', future: '', translation: '', category: 'basic' });
+  const [searchInput, setSearchInput] = useState('');
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [lookupStatus, setLookupStatus] = useState(null); // null | 'found' | 'api' | 'error'
+  const [autoFilled, setAutoFilled] = useState(false);
+
+  // Build lookup maps from the existing database
+  const verbByGreek = {};
+  const verbByRussian = {};
+  verbsDatabase.forEach(v => {
+    verbByGreek[v.present.toLowerCase()] = v;
+    v.translation.split(',').forEach(t => {
+      verbByRussian[t.trim().toLowerCase()] = v;
+    });
+  });
+
+  const isGreekText = (text) => /[\u0370-\u03FF\u1F00-\u1FFF]/.test(text);
+
+  const lookupVerb = async () => {
+    const input = searchInput.trim();
+    if (!input) return;
+    
+    setIsLookingUp(true);
+    setLookupStatus(null);
+    setAutoFilled(false);
+
+    // 1. Try local database first
+    const isGreek = isGreekText(input);
+    const localMatch = isGreek 
+      ? verbByGreek[input.toLowerCase()] 
+      : verbByRussian[input.toLowerCase()];
+
+    if (localMatch) {
+      setNewVerb({
+        present: localMatch.present,
+        aorist: localMatch.aorist,
+        future: localMatch.future,
+        translation: localMatch.translation,
+        category: localMatch.category || 'basic'
+      });
+      setLookupStatus('found');
+      setAutoFilled(true);
+      setIsLookingUp(false);
+      return;
+    }
+
+    // 2. Try Anthropic API
+    try {
+      const prompt = isGreek
+        ? `Дан греческий глагол в настоящем времени (1 лицо): "${input}". Верни JSON объект (без markdown, без пояснений) с полями: present (настоящее, 1 лицо ед.ч.), aorist (аорист, 1 лицо ед.ч.), future (будущее с θα, 1 лицо ед.ч.), translation (перевод на русский, краткий, через запятую если несколько значений). Пример: {"present":"γράφω","aorist":"έγραψα","future":"θα γράψω","translation":"писать"}`
+        : `Дан русский глагол: "${input}". Верни JSON объект (без markdown, без пояснений) с полями: present (греческий, настоящее время, 1 лицо ед.ч.), aorist (аорист, 1 лицо ед.ч.), future (будущее с θα, 1 лицо ед.ч.), translation (перевод на русский, краткий). Пример: {"present":"γράφω","aorist":"έγραψα","future":"θα γράψω","translation":"писать"}`;
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+
+      const data = await response.json();
+      const text = data.content?.map(i => i.text || "").join("") || "";
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+
+      if (parsed.present && parsed.aorist && parsed.future && parsed.translation) {
+        setNewVerb({
+          present: parsed.present,
+          aorist: parsed.aorist,
+          future: parsed.future,
+          translation: parsed.translation,
+          category: 'basic'
+        });
+        setLookupStatus('api');
+        setAutoFilled(true);
+      } else {
+        setLookupStatus('error');
+      }
+    } catch (err) {
+      console.error('API lookup failed:', err);
+      setLookupStatus('error');
+    }
+
+    setIsLookingUp(false);
+  };
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') lookupVerb();
+  };
+
+  useEffect(() => {
+    const savedProgress = localStorage.getItem('greekVerbsProgressV2');
+    const savedCustom = localStorage.getItem('greekVerbsCustomV2');
+    if (savedProgress) setProgress(JSON.parse(savedProgress));
+    if (savedCustom) setCustomVerbs(JSON.parse(savedCustom));
+  }, []);
+
+  const saveProgress = (newProgress) => {
+    setProgress(newProgress);
+    localStorage.setItem('greekVerbsProgressV2', JSON.stringify(newProgress));
+  };
+
+  const speak = useCallback((text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'el-GR';
+      utterance.rate = 0.85;
+      window.speechSynthesis.speak(utterance);
+    }
+  }, []);
+
+  const getAllVerbs = () => [...verbsDatabase, ...customVerbs.map((v, i) => ({ ...v, id: `custom_${i}`, isCustom: true }))];
+  const getVerbProgress = (verbId) => progress[verbId] || { level: 0, lastReview: null, nextReview: null, correctCount: 0, incorrectCount: 0 };
+
+  const getFilteredVerbs = () => {
+    let filtered = getAllVerbs();
+    if (!selectedCategories.includes('all')) filtered = filtered.filter(v => selectedCategories.includes(v.category));
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(v => v.present.toLowerCase().includes(term) || v.translation.toLowerCase().includes(term));
+    }
+    return filtered;
+  };
+
+  const getRandomExample = (verb, tense) => {
+    if (verb.examples && verb.examples[tense] && verb.examples[tense].length > 0) {
+      return verb.examples[tense][Math.floor(Math.random() * verb.examples[tense].length)];
+    }
+    return null;
+  };
+
+  const getCardsForStudy = () => {
+    const now = Date.now();
+    const filtered = getFilteredVerbs();
+    const sorted = filtered.map(verb => {
+      const prog = getVerbProgress(verb.id);
+      const nextReview = prog.nextReview || 0;
+      const isOverdue = nextReview <= now;
+      const isNew = prog.level === 0;
+      return { verb, prog, isOverdue, isNew, priority: isOverdue ? 0 : (isNew ? 1 : 2), nextReview };
+    }).sort((a, b) => a.priority !== b.priority ? a.priority - b.priority : a.nextReview - b.nextReview);
+    const overdue = sorted.filter(c => c.isOverdue);
+    const newCards = sorted.filter(c => c.isNew && !c.isOverdue).slice(0, 5);
+    const rest = sorted.filter(c => !c.isOverdue && !c.isNew);
+    return [...overdue, ...newCards, ...rest].slice(0, 20).map(c => c.verb);
+  };
+
+  const selectTense = () => formMode === 'all' ? ['present', 'aorist', 'future'][Math.floor(Math.random() * 3)] : formMode;
+
+  const startPractice = () => {
+    const queue = getCardsForStudy();
+    if (queue.length === 0) { alert('Нет карточек!'); return; }
+    setCardQueue(queue);
+    const tense = selectTense();
+    setCurrentTense(tense);
+    setCurrentCard(queue[0]);
+    setCurrentExample(getRandomExample(queue[0], tense));
+    setShowAnswer(false);
+    setSessionStats({ correct: 0, incorrect: 0 });
+    setMode('practice');
+  };
+
+  const handleAnswer = (correct) => {
+    const verbId = currentCard.id;
+    const currentProg = getVerbProgress(verbId);
+    const now = Date.now();
+    let newLevel = correct ? Math.min(7, currentProg.level + 1) : Math.max(0, currentProg.level - 2);
+    const nextReview = now + (SRS_INTERVALS[newLevel] * 60 * 60 * 1000);
+    const newProgress = { ...progress, [verbId]: { level: newLevel, lastReview: now, nextReview, correctCount: currentProg.correctCount + (correct ? 1 : 0), incorrectCount: currentProg.incorrectCount + (correct ? 0 : 1) } };
+    saveProgress(newProgress);
+    setSessionStats(prev => ({ correct: prev.correct + (correct ? 1 : 0), incorrect: prev.incorrect + (correct ? 0 : 1) }));
+    const nextIndex = cardQueue.indexOf(currentCard) + 1;
+    if (nextIndex < cardQueue.length) {
+      const nextVerb = cardQueue[nextIndex];
+      const tense = selectTense();
+      setCurrentTense(tense);
+      setCurrentCard(nextVerb);
+      setCurrentExample(getRandomExample(nextVerb, tense));
+      setShowAnswer(false);
+    } else { setMode('results'); }
+  };
+
+  const addCustomVerb = () => {
+    if (!newVerb.present || !newVerb.aorist || !newVerb.future || !newVerb.translation) { alert('Заполни все поля!'); return; }
+    // Check for duplicates
+    const allVerbs = getAllVerbs();
+    if (allVerbs.some(v => v.present.toLowerCase() === newVerb.present.toLowerCase())) {
+      alert('Этот глагол уже есть в базе!');
+      return;
+    }
+    const newCustomVerbs = [...customVerbs, { ...newVerb }];
+    setCustomVerbs(newCustomVerbs);
+    localStorage.setItem('greekVerbsCustomV2', JSON.stringify(newCustomVerbs));
+    setNewVerb({ present: '', aorist: '', future: '', translation: '', category: 'basic' });
+    setSearchInput('');
+    setLookupStatus(null);
+    setAutoFilled(false);
+    alert('Добавлено!');
+  };
+
+  const deleteCustomVerb = (index) => {
+    const newCustomVerbs = customVerbs.filter((_, i) => i !== index);
+    setCustomVerbs(newCustomVerbs);
+    localStorage.setItem('greekVerbsCustomV2', JSON.stringify(newCustomVerbs));
+  };
+
+  const toggleCategory = (cat) => {
+    if (cat === 'all') setSelectedCategories(['all']);
+    else {
+      let newSelected = selectedCategories.filter(c => c !== 'all');
+      newSelected = newSelected.includes(cat) ? newSelected.filter(c => c !== cat) : [...newSelected, cat];
+      setSelectedCategories(newSelected.length === 0 ? ['all'] : newSelected);
+    }
+  };
+
+  const getStats = () => {
+    const all = getAllVerbs();
+    const stats = { total: all.length, byLevel: {} };
+    for (let i = 0; i <= 7; i++) stats.byLevel[i] = 0;
+    all.forEach(verb => { stats.byLevel[getVerbProgress(verb.id).level]++; });
+    const now = Date.now();
+    stats.dueNow = all.filter(v => { const prog = getVerbProgress(v.id); return !prog.nextReview || prog.nextReview <= now; }).length;
+    return stats;
+  };
+
+  const resetProgress = () => { if (confirm('Сбросить прогресс?')) { setProgress({}); localStorage.removeItem('greekVerbsProgressV2'); } };
+
+  const stats = getStats();
+  const tenseLabels = { present: { name: 'Настоящее', color: 'text-teal-700' }, aorist: { name: 'Аорист', color: 'text-orange-600' }, future: { name: 'Будущее', color: 'text-blue-600' } };
+
+  if (mode === 'menu') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 p-4">
+        <div className="max-w-lg mx-auto">
+          <h1 className="text-3xl font-bold text-center text-teal-800 mb-2">🇬🇷 Греческие глаголы</h1>
+          <p className="text-center text-sm text-teal-600 mb-6">{stats.total} глаголов • {stats.dueNow} к повторению</p>
+          <div className="bg-white rounded-xl p-4 shadow-lg mb-6">
+            <div className="flex h-3 rounded-full overflow-hidden mb-2">
+              {Object.entries(stats.byLevel).map(([level, count]) => count > 0 && <div key={level} className={LEVEL_COLORS[level].split(' ')[0]} style={{ width: `${(count / stats.total) * 100}%` }} />)}
+            </div>
+            <div className="flex flex-wrap gap-1 text-xs">
+              {Object.entries(stats.byLevel).map(([level, count]) => count > 0 && <span key={level} className={`px-2 py-0.5 rounded-full ${LEVEL_COLORS[level]}`}>{LEVEL_NAMES[level]}: {count}</span>)}
+            </div>
+          </div>
+          <div className="space-y-3">
+            <button onClick={startPractice} className="w-full py-4 bg-teal-600 text-white rounded-xl text-lg font-semibold hover:bg-teal-700 shadow-lg">🎯 Учить ({stats.dueNow})</button>
+            <button onClick={() => setMode('table')} className="w-full py-4 bg-white text-teal-600 rounded-xl text-lg font-semibold hover:bg-teal-50 shadow-lg border-2 border-teal-200">📊 Все глаголы</button>
+            <button onClick={() => setMode('add')} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200">➕ Добавить глагол</button>
+            <button onClick={() => setShowSettings(!showSettings)} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200">⚙️ Настройки</button>
+          </div>
+          {showSettings && (
+            <div className="mt-6 bg-white rounded-xl p-4 shadow-lg">
+              <h3 className="font-semibold text-gray-800 mb-3">Направление:</h3>
+              <div className="flex gap-2 mb-4">
+                <button onClick={() => setQuestionType('ru_to_gr')} className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium ${questionType === 'ru_to_gr' ? 'bg-teal-600 text-white' : 'bg-gray-200'}`}>🇷🇺→🇬🇷</button>
+                <button onClick={() => setQuestionType('gr_to_ru')} className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium ${questionType === 'gr_to_ru' ? 'bg-teal-600 text-white' : 'bg-gray-200'}`}>🇬🇷→🇷🇺</button>
+              </div>
+              <h3 className="font-semibold text-gray-800 mb-3">Формы:</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {[{ key: 'all', label: 'Все' }, { key: 'present', label: 'Настоящее' }, { key: 'aorist', label: 'Аорист' }, { key: 'future', label: 'Будущее' }].map(({ key, label }) => (
+                  <button key={key} onClick={() => setFormMode(key)} className={`px-3 py-1 rounded-full text-sm font-medium ${formMode === key ? 'bg-teal-600 text-white' : 'bg-gray-200'}`}>{label}</button>
+                ))}
+              </div>
+              <h3 className="font-semibold text-gray-800 mb-3">Примеры:</h3>
+              <button onClick={() => setShowExample(!showExample)} className={`px-4 py-2 rounded-lg text-sm font-medium ${showExample ? 'bg-teal-600 text-white' : 'bg-gray-200'}`}>{showExample ? '✓ Показывать' : '✗ Скрыть'}</button>
+              <h3 className="font-semibold text-gray-800 mb-3 mt-4">Категории:</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {Object.entries(categories).map(([key, name]) => (
+                  <button key={key} onClick={() => toggleCategory(key)} className={`px-3 py-1 rounded-full text-xs font-medium ${selectedCategories.includes(key) ? 'bg-teal-600 text-white' : 'bg-gray-200'}`}>{name}</button>
+                ))}
+              </div>
+              <button onClick={resetProgress} className="w-full py-2 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 mt-2">🗑️ Сбросить</button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'practice' && currentCard) {
+    const verbProg = getVerbProgress(currentCard.id);
+    const cardIndex = cardQueue.indexOf(currentCard) + 1;
+    const tenseInfo = tenseLabels[currentTense];
+    const getFormByTense = (verb, tense) => ({ present: verb.present, aorist: verb.aorist, future: verb.future }[tense]);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 p-4">
+        <div className="max-w-lg mx-auto">
+          <div className="flex justify-between items-center mb-4">
+            <button onClick={() => setMode('menu')} className="px-4 py-2 bg-white rounded-lg shadow hover:bg-gray-50">← Меню</button>
+            <div className="flex items-center gap-2">
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${LEVEL_COLORS[verbProg.level]}`}>{LEVEL_NAMES[verbProg.level]}</span>
+              <span className="bg-white px-3 py-1 rounded-lg shadow text-sm">{cardIndex}/{cardQueue.length}</span>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl shadow-xl p-6 min-h-[500px] flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex gap-3 text-sm"><span className="text-green-600">✓ {sessionStats.correct}</span><span className="text-red-500">✗ {sessionStats.incorrect}</span></div>
+              <div className="w-24 bg-gray-200 rounded-full h-2"><div className="bg-teal-600 h-2 rounded-full" style={{ width: `${(cardIndex / cardQueue.length) * 100}%` }} /></div>
+            </div>
+            {formMode !== 'all' && <div className={`text-center mb-2 text-sm font-medium ${tenseInfo.color}`}>{tenseInfo.name}</div>}
+            <div className="flex-1 flex flex-col items-center justify-center">
+              {questionType === 'ru_to_gr' ? (
+                <><p className="text-gray-500 text-sm mb-2">{formMode === 'all' ? `Как по-гречески (${tenseInfo.name.toLowerCase()}):` : 'Как по-гречески:'}</p><p className="text-3xl font-bold text-gray-800 text-center mb-4">{currentCard.translation}</p></>
+              ) : (
+                <><p className="text-gray-500 text-sm mb-2">Переведи:</p><div className="flex items-center gap-3 mb-4"><p className={`text-3xl font-bold ${tenseInfo.color}`}>{getFormByTense(currentCard, currentTense)}</p><button onClick={() => speak(getFormByTense(currentCard, currentTense))} className="p-2 bg-teal-100 rounded-full hover:bg-teal-200">🔊</button></div></>
+              )}
+              {showExample && currentExample && !showAnswer && (
+                <div className="w-full bg-gray-50 rounded-xl p-4 mb-4 border border-gray-200"><p className="text-xs text-gray-400 mb-1">Пример:</p><p className="text-gray-600 italic">{currentExample.ru}</p></div>
+              )}
+              {showAnswer ? (
+                <div className="w-full space-y-4">
+                  <div className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl p-5 border border-teal-200">
+                    {questionType === 'ru_to_gr' && <p className="text-xl font-bold text-center text-gray-700 mb-4">{currentCard.translation}</p>}
+                    <div className="space-y-3">
+                      {['present', 'aorist', 'future'].map(tense => (
+                        <div key={tense} className={`flex items-center justify-between p-3 rounded-lg ${currentTense === tense ? 'bg-teal-100 border-2 border-teal-400' : 'bg-white'}`}>
+                          <span className="text-sm text-gray-500">{tenseLabels[tense].name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-lg font-bold ${tenseLabels[tense].color}`}>{getFormByTense(currentCard, tense)}</span>
+                            <button onClick={() => speak(getFormByTense(currentCard, tense))} className="p-1 hover:bg-gray-100 rounded">🔊</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {questionType === 'gr_to_ru' && <p className="text-xl font-bold text-center text-gray-700 mt-4">= {currentCard.translation}</p>}
+                    {currentExample && (
+                      <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div><p className="text-teal-700 font-medium">{currentExample.gr}</p><p className="text-gray-500 text-sm">{currentExample.ru}</p></div>
+                          <button onClick={() => speak(currentExample.gr)} className="p-2 bg-teal-100 rounded-full hover:bg-teal-200">🔊</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={() => handleAnswer(false)} className="flex-1 py-4 bg-red-100 text-red-700 rounded-xl font-semibold hover:bg-red-200">✗ Не знал</button>
+                    <button onClick={() => handleAnswer(true)} className="flex-1 py-4 bg-green-100 text-green-700 rounded-xl font-semibold hover:bg-green-200">✓ Знал</button>
+                  </div>
+                </div>
+              ) : (
+                <button onClick={() => setShowAnswer(true)} className="w-full py-4 bg-teal-600 text-white rounded-xl text-lg font-semibold hover:bg-teal-700 mt-auto">Показать ответ</button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'results') {
+    const total = sessionStats.correct + sessionStats.incorrect;
+    const percentage = total > 0 ? Math.round((sessionStats.correct / total) * 100) : 0;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 p-4 flex items-center">
+        <div className="max-w-lg mx-auto w-full">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <h2 className="text-3xl font-bold text-teal-800 mb-6">🎉 Готово!</h2>
+            <div className="text-6xl font-bold text-teal-600 mb-2">{percentage}%</div>
+            <p className="text-gray-600 mb-8">{sessionStats.correct} из {total} правильно</p>
+            <div className="flex gap-8 justify-center mb-8">
+              <div className="text-center"><div className="text-4xl font-bold text-green-600">{sessionStats.correct}</div><p className="text-sm text-gray-500">Верно</p></div>
+              <div className="text-center"><div className="text-4xl font-bold text-red-500">{sessionStats.incorrect}</div><p className="text-sm text-gray-500">Ошибок</p></div>
+            </div>
+            <div className="space-y-3">
+              <button onClick={startPractice} className="w-full py-4 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700">🔄 Ещё</button>
+              <button onClick={() => setMode('menu')} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200">← Меню</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'table') {
+    const filtered = getFilteredVerbs();
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-between items-center mb-4">
+            <button onClick={() => setMode('menu')} className="px-4 py-2 bg-white rounded-lg shadow hover:bg-gray-50">← Назад</button>
+            <h2 className="text-xl font-bold text-teal-800">Глаголы ({filtered.length})</h2>
+          </div>
+          <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="🔍 Поиск..." className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:outline-none mb-4" />
+          <div className="flex flex-wrap gap-2 mb-4">
+            {Object.entries(categories).map(([key, name]) => (
+              <button key={key} onClick={() => toggleCategory(key)} className={`px-3 py-1 rounded-full text-xs font-medium ${selectedCategories.includes(key) ? 'bg-teal-600 text-white' : 'bg-white'}`}>{name}</button>
+            ))}
+          </div>
+          <div className="overflow-x-auto bg-white rounded-xl shadow-lg">
+            <table className="w-full text-sm">
+              <thead><tr className="bg-teal-600 text-white"><th className="p-3 text-left">Ур.</th><th className="p-3 text-left">Перевод</th><th className="p-3">Настоящее</th><th className="p-3">Аорист</th><th className="p-3">Будущее</th><th className="p-3">🔊</th></tr></thead>
+              <tbody>
+                {filtered.map((verb, idx) => {
+                  const prog = getVerbProgress(verb.id);
+                  return (
+                    <tr key={verb.id} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                      <td className="p-2"><span className={`px-2 py-0.5 rounded-full text-xs ${LEVEL_COLORS[prog.level]}`}>{prog.level}</span></td>
+                      <td className="p-2 font-medium text-gray-700">{verb.translation}{verb.isCustom && <span className="ml-1 text-teal-500">★</span>}</td>
+                      <td className="p-2 text-center text-teal-700 font-medium">{verb.present}</td>
+                      <td className="p-2 text-center text-orange-600">{verb.aorist}</td>
+                      <td className="p-2 text-center text-blue-600">{verb.future}</td>
+                      <td className="p-2 text-center"><button onClick={() => speak(verb.present)} className="hover:bg-gray-100 p-1 rounded">🔊</button></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'add') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 p-4">
+        <div className="max-w-lg mx-auto">
+          <button onClick={() => { setMode('menu'); setSearchInput(''); setLookupStatus(null); setAutoFilled(false); setNewVerb({ present: '', aorist: '', future: '', translation: '', category: 'basic' }); }} className="mb-4 px-4 py-2 bg-white rounded-lg shadow hover:bg-gray-50">← Назад</button>
+          <div className="bg-white rounded-2xl shadow-xl p-6">
+            <h2 className="text-2xl font-bold text-teal-800 mb-2 text-center">➕ Добавить глагол</h2>
+            <p className="text-center text-gray-500 text-sm mb-6">Введи глагол на русском или греческом — формы заполнятся автоматически</p>
+            
+            {/* Smart search input */}
+            <div className="mb-6">
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={searchInput} 
+                  onChange={(e) => { setSearchInput(e.target.value); setLookupStatus(null); setAutoFilled(false); }}
+                  onKeyDown={handleSearchKeyPress}
+                  placeholder="писать или γράφω" 
+                  className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:outline-none text-lg"
+                  autoFocus
+                />
+                <button 
+                  onClick={lookupVerb} 
+                  disabled={isLookingUp || !searchInput.trim()} 
+                  className={`px-5 py-3 rounded-xl font-semibold transition-colors ${
+                    isLookingUp || !searchInput.trim() 
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                      : 'bg-teal-600 text-white hover:bg-teal-700'
+                  }`}
+                >
+                  {isLookingUp ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                    </span>
+                  ) : '🔍'}
+                </button>
+              </div>
+              
+              {/* Status messages */}
+              {lookupStatus === 'found' && (
+                <div className="mt-2 px-3 py-2 bg-green-50 text-green-700 rounded-lg text-sm flex items-center gap-2">
+                  <span>✓</span> Найдено в базе! Этот глагол уже есть в тренажёре.
+                </div>
+              )}
+              {lookupStatus === 'api' && (
+                <div className="mt-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm flex items-center gap-2">
+                  <span>✨</span> Формы заполнены автоматически. Проверь и сохрани.
+                </div>
+              )}
+              {lookupStatus === 'error' && (
+                <div className="mt-2 px-3 py-2 bg-orange-50 text-orange-700 rounded-lg text-sm flex items-center gap-2">
+                  <span>⚠</span> Не удалось найти. Заполни формы вручную.
+                </div>
+              )}
+            </div>
+
+            {/* Verb forms - auto-filled or manual */}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <span className="inline-block w-2 h-2 rounded-full bg-teal-500 mr-2"></span>Настоящее <span className="text-gray-400 font-normal">(Ενεστώτας)</span>
+                </label>
+                <input type="text" value={newVerb.present} onChange={(e) => setNewVerb({...newVerb, present: e.target.value})} placeholder="γράφω" className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none transition-colors ${autoFilled ? 'border-teal-300 bg-teal-50 focus:border-teal-500' : 'border-gray-200 focus:border-teal-500'}`} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <span className="inline-block w-2 h-2 rounded-full bg-orange-500 mr-2"></span>Аорист <span className="text-gray-400 font-normal">(Αόριστος)</span>
+                </label>
+                <input type="text" value={newVerb.aorist} onChange={(e) => setNewVerb({...newVerb, aorist: e.target.value})} placeholder="έγραψα" className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none transition-colors ${autoFilled ? 'border-teal-300 bg-teal-50 focus:border-teal-500' : 'border-gray-200 focus:border-teal-500'}`} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2"></span>Будущее <span className="text-gray-400 font-normal">(Μέλλοντας)</span>
+                </label>
+                <input type="text" value={newVerb.future} onChange={(e) => setNewVerb({...newVerb, future: e.target.value})} placeholder="θα γράψω" className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none transition-colors ${autoFilled ? 'border-teal-300 bg-teal-50 focus:border-teal-500' : 'border-gray-200 focus:border-teal-500'}`} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  <span className="inline-block w-2 h-2 rounded-full bg-gray-500 mr-2"></span>Перевод <span className="text-gray-400 font-normal">(Μετάφραση)</span>
+                </label>
+                <input type="text" value={newVerb.translation} onChange={(e) => setNewVerb({...newVerb, translation: e.target.value})} placeholder="писать" className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none transition-colors ${autoFilled ? 'border-teal-300 bg-teal-50 focus:border-teal-500' : 'border-gray-200 focus:border-teal-500'}`} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Категория</label>
+                <select value={newVerb.category} onChange={(e) => setNewVerb({...newVerb, category: e.target.value})} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:outline-none">
+                  {Object.entries(categories).filter(([k]) => k !== 'all').map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+                </select>
+              </div>
+              <button onClick={addCustomVerb} disabled={lookupStatus === 'found'} className={`w-full py-4 rounded-xl text-lg font-semibold transition-colors ${
+                lookupStatus === 'found' 
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                  : 'bg-teal-600 text-white hover:bg-teal-700'
+              }`}>
+                {lookupStatus === 'found' ? 'Уже есть в базе' : 'Добавить'}
+              </button>
+            </div>
+          </div>
+          
+          {customVerbs.length > 0 && (
+            <div className="mt-6 bg-white rounded-2xl shadow-xl p-6">
+              <h3 className="font-semibold text-gray-800 mb-3">Мои глаголы ({customVerbs.length}):</h3>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {customVerbs.map((verb, idx) => (
+                  <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <span className="font-medium text-teal-700">{verb.present}</span>
+                      <span className="text-gray-400 mx-1">·</span>
+                      <span className="text-orange-600 text-sm">{verb.aorist}</span>
+                      <span className="text-gray-400 mx-1">·</span>
+                      <span className="text-blue-600 text-sm">{verb.future}</span>
+                      <span className="text-gray-500 block text-sm">{verb.translation}</span>
+                    </div>
+                    <button onClick={() => deleteCustomVerb(idx)} className="text-red-400 hover:text-red-600 px-2 text-lg">✕</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
