@@ -14,7 +14,7 @@ export default function App() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100">
         <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-teal-100 px-4 py-3 flex items-center gap-3">
-          <button onClick={() => setActive(null)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-teal-50 text-teal-700 text-sm font-medium hover:bg-teal-100 transition-colors">← Назад</button>
+          <button onClick={() => setActive(null)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-teal-50 text-teal-700 text-sm font-medium hover:bg-teal-100">← Назад</button>
           <span className="text-sm font-semibold text-teal-800">{label}</span>
         </div>
         <Current />
