@@ -1,16 +1,1 @@
-:root {
-  --color-background-primary: #ffffff;
-  --color-background-secondary: #f9fafb;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-tertiary: #9ca3af;
-  --color-border-secondary: #e5e7eb;
-  --color-border-tertiary: #f3f4f6;
-  --border-radius-md: 8px;
-  --border-radius-lg: 12px;
-  --font-sans: system-ui, -apple-system, sans-serif;
-  --font-mono: ui-monospace, monospace;
-}
-
-* { box-sizing: border-box; }
-body { margin: 0; font-family: var(--font-sans); background: #f9fafb; }
+:root{--color-background-primary:#ffffff;--color-background-secondary:#f9fafb;--color-text-primary:#111827;--color-text-secondary:#6b7280;--color-text-tertiary:#9ca3af;--color-border-secondary:#e5e7eb;--color-border-tertiary:#f3f4f6;--border-radius-md:8px;--border-radius-lg:12px;--font-sans:system-ui,-apple-system,sans-serif;--font-mono:ui-monospace,monospace}*{box-sizing:border-box}body{margin:0;font-family:var(--font-sans);background:#f9fafb}
