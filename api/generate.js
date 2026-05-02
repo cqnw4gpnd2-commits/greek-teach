@@ -8,7 +8,6 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify(req.body),
     });
-    const data = await response.json();
-    return res.status(response.status).json(data);
+    return res.status(response.status).json(await response.json());
   } catch (err) { return res.status(500).json({ error: err.message }); }
 }

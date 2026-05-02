@@ -27,7 +27,7 @@ export default function App() {
         <div className="text-center mb-10">
           <div className="text-5xl mb-3">🇬🇷</div>
           <h1 className="text-3xl font-bold text-teal-800 mb-1">Греческий язык</h1>
-          <p className="text-teal-600 text-sm">Уровень A2 · Никосия, Кипр 🇨🇾</p>
+          <p className="text-teal-600 text-sm">Уровень A2 · Никосия, Кипр</p>
         </div>
         <div className="space-y-3">
           {APPS.map(app => (
@@ -38,7 +38,6 @@ export default function App() {
             </button>
           ))}
         </div>
-        <p className="text-center text-teal-400 text-xs mt-10">Прогресс сохраняется в браузере · Экспорт в настройках</p>
       </div>
     </div>
   );

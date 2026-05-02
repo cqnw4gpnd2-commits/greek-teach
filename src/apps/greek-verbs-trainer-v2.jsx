@@ -874,7 +874,7 @@ const verbsDatabase = [
         { gr: "Θα ταξιδέψουμε στην Ελλάδα.", ru: "Поедем в Грецию." }
       ]
     }
-  }
+  },
   {
     id: 51, present: "μαγειρεύω", aorist: "μαγείρεψα", future: "θα μαγειρέψω", translation: "готовить", category: "food",
     examples: {
@@ -1114,7 +1114,7 @@ const verbsDatabase = [
       aorist: [{"gr": "Έφτιαξα τσάι για όλους.", "ru": "Приготовил чай для всех."}, {"gr": "Έφτιαξε το πρόβλημα.", "ru": "Решил проблему."}],
       future: [{"gr": "Θα φτιάξω κέικ.", "ru": "Испеку торт."}, {"gr": "Θα φτιάξεις κάτι να φάμε;", "ru": "Приготовишь что-нибудь поесть?"}]
     }
-  },
+  }
 ];
 
 const categories = {
@@ -1430,15 +1430,11 @@ export default function GreekVerbsTrainerV2() {
                       const data = JSON.stringify({ progress, customVerbs });
                       const blob = new Blob([data], {type:'application/json'});
                       const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href=url; a.download='verbs-progress.json'; a.click();
+                      const a = document.createElement('a'); a.href=url; a.download='verbs-progress.json'; a.click();
                       URL.revokeObjectURL(url);
-                    }} className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">
-                      ⬇ Скачать прогресс
-                    </button>
+                    }} className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">⬇ Скачать</button>
                     <button onClick={() => {
-                      const input = document.createElement('input');
-                      input.type='file'; input.accept='.json';
+                      const input = document.createElement('input'); input.type='file'; input.accept='.json';
                       input.onchange = (e) => {
                         const reader = new FileReader();
                         reader.onload = (ev) => {
@@ -1452,9 +1448,7 @@ export default function GreekVerbsTrainerV2() {
                         reader.readAsText(e.target.files[0]);
                       };
                       input.click();
-                    }} className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">
-                      ⬆ Загрузить прогресс
-                    </button>
+                    }} className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200">⬆ Загрузить</button>
                   </div>
                 </div>
               <button onClick={resetProgress} className="w-full py-2 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 mt-2">🗑️ Сбросить</button>

@@ -508,14 +508,8 @@ function fetchWordData(word) {
   const idx = word.id;
   const s = STATIC_DATA[idx];
   if (s) return Promise.resolve(s);
-  // Fallback: use English translation
   const base = word.g.split(',')[0].split('/')[0].split('(')[0].trim();
-  return Promise.resolve({
-    ru: word.e,
-    pron: base,
-    ex_gr: base + '.',
-    ex_ru: word.e + '.'
-  });
+  return Promise.resolve({ ru: word.e, pron: base, ex_gr: base + '.', ex_ru: word.e + '.' });
 }
 
 export default function App() {
@@ -687,7 +681,6 @@ export default function App() {
       </div>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
 
-      {/* Export/Import progress */}
       <div style={{ marginTop: 16, paddingTop: 16, borderTop: '0.5px solid var(--color-border-tertiary)' }}>
         <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 8 }}>Прогресс</div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -695,15 +688,11 @@ export default function App() {
             const data = JSON.stringify({ progress: progressRef.current, cache: cacheRef.current });
             const blob = new Blob([data], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'vocab-progress.json'; a.click();
+            const a = document.createElement('a'); a.href = url; a.download = 'vocab-progress.json'; a.click();
             URL.revokeObjectURL(url);
-          }} style={{ flex: 1, padding: '7px 12px', borderRadius: 'var(--border-radius-md)', border: '0.5px solid var(--color-border-secondary)', background: 'var(--color-background-primary)', cursor: 'pointer', fontSize: 12 }}>
-            ⬇ Скачать
-          </button>
+          }} style={{ flex: 1, padding: '7px 12px', borderRadius: 'var(--border-radius-md)', border: '0.5px solid var(--color-border-secondary)', background: 'var(--color-background-primary)', cursor: 'pointer', fontSize: 12 }}>⬇ Скачать</button>
           <button onClick={() => {
-            const input = document.createElement('input');
-            input.type = 'file'; input.accept = '.json';
+            const input = document.createElement('input'); input.type = 'file'; input.accept = '.json';
             input.onchange = (e) => {
               const reader = new FileReader();
               reader.onload = (ev) => {
@@ -717,9 +706,7 @@ export default function App() {
               reader.readAsText(e.target.files[0]);
             };
             input.click();
-          }} style={{ flex: 1, padding: '7px 12px', borderRadius: 'var(--border-radius-md)', border: '0.5px solid var(--color-border-secondary)', background: 'var(--color-background-primary)', cursor: 'pointer', fontSize: 12 }}>
-            ⬆ Загрузить
-          </button>
+          }} style={{ flex: 1, padding: '7px 12px', borderRadius: 'var(--border-radius-md)', border: '0.5px solid var(--color-border-secondary)', background: 'var(--color-background-primary)', cursor: 'pointer', fontSize: 12 }}>⬆ Загрузить</button>
         </div>
       </div>
         <button onClick={() => startSession(mode)} style={{ padding: '8px 20px', borderRadius: 'var(--border-radius-md)', border: '0.5px solid var(--color-border-secondary)', background: 'var(--color-background-primary)', cursor: 'pointer', fontSize: 14 }}>
